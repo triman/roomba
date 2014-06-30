@@ -1,6 +1,8 @@
 package org.github.triman.roomba
 
-trait ISensorsState {
+import org.github.triman.roomba.utils.ByteOperations._
+
+trait AbstractSensorsState {
 		def casterWheelDrop : Option[Boolean]
 		def leftWheelDrop : Option[Boolean]
 		def rightWheelDrop : Option[Boolean]
@@ -115,4 +117,67 @@ trait ISensorsState {
 		 * Range: 0 - 65535
 		 */
 		def capacity : Option[Int]
+		
+		def getByteArray(packet : SensorPacket) : Array[Byte] = packet match {
+		case AllSensors => getByteArray(Detectors) ++ getByteArray(Controls) ++ getByteArray(Health)
+		case Detectors => {
+			Array(
+				(		// bump wheeldrops
+					  (if (!casterWheelDrop.isEmpty && casterWheelDrop.get) 16 else 0)
+					+ (if (!leftWheelDrop.isEmpty && leftWheelDrop.get) 8 else 0)
+					+ (if (!rightWheelDrop.isEmpty && rightWheelDrop.get) 4 else 0)
+					+ (if (!leftBump.isEmpty && leftBump.get) 2 else 0)
+					+ (if (!rightBump.isEmpty && rightBump.get) 1 else 0)
+				).toByte,
+				// wall
+				(if (!wall.isEmpty && wall.get) 1 else 0).toByte,
+				// cliff left
+				(if (!cliffLeft.isEmpty && cliffLeft.get) 1 else 0).toByte,
+				// cliff front left
+				(if (!cliffFrontLeft.isEmpty && cliffFrontLeft.get) 1 else 0).toByte,
+				// cliff front right
+				(if (!cliffFrontRight.isEmpty && cliffFrontRight.get) 1 else 0).toByte,
+				// cliff right
+				(if (!cliffRight.isEmpty && cliffRight.get) 1 else 0).toByte,
+				// virtual wall
+				(if (!virtualWall.isEmpty && virtualWall.get) 1 else 0).toByte,
+				// motor overcurrents
+				(
+					  (if (!motorOvercurrentLeft.isEmpty && motorOvercurrentLeft.get) 16 else 0)
+					+ (if (!motorOvercurrentRight.isEmpty && motorOvercurrentRight.get) 8 else 0)
+					+ (if (!motorOvercurrentMainBrush.isEmpty && motorOvercurrentMainBrush.get) 4 else 0)
+					+ (if (!motorOvercurrentVacuum.isEmpty && motorOvercurrentVacuum.get) 2 else 0)
+					+ (if (!motorOvercurrentSideBrush.isEmpty && motorOvercurrentSideBrush.get) 1 else 0)
+				).toByte,
+				// dirt detector left
+				(if (dirtDetectorLeft.isEmpty) 0 else dirtDetectorLeft.get).toByte,
+				// dirt detector right
+				(if (dirtDetectorRight.isEmpty) 0 else dirtDetectorRight.get).toByte
+			)
+		}
+		case Controls => {
+			Array(
+					// remote control
+				(if (remoteControlCommand.isEmpty) 0 else remoteControlCommand.get).toByte,
+				// buttons
+				(
+					  (if (!powerButton.isEmpty && powerButton.get) 8 else 0)
+					+ (if (!spotButton.isEmpty && spotButton.get) 4 else 0)
+					+ (if (!cleanButton.isEmpty && cleanButton.get) 2 else 0)
+					+ (if (!maxButton.isEmpty && maxButton.get) 1 else 0)
+				).toByte
+			) ++ (short2ByteArray((if (distance.isEmpty) 0 else distance.get).toShort)	++ short2ByteArray((if (angle.isEmpty) 0 else 129*angle.get).toShort))
+		}
+		case Health => {
+			Array(
+					// charging state
+					(if (chargingState.isEmpty) 0 else chargingState.get).toByte
+			) ++ int2ByteArray(if (voltage.isEmpty) 0 else voltage.get).dropRight(2) ++
+			short2ByteArray((if (current.isEmpty) 0 else current.get).toShort) ++
+			Array((if (temperature.isEmpty) 0 else temperature.get).toByte) ++
+			int2ByteArray(if (charge.isEmpty) 0 else charge.get).dropRight(2) ++
+			int2ByteArray(if (capacity.isEmpty) 0 else capacity.get).dropRight(2)
+			
+		}
+	}
 }
