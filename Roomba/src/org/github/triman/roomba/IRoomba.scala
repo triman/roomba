@@ -63,7 +63,7 @@ trait IRoomba {
 	 * Drive straight at a certain speed
 	 * @param speed The drive speed [mm/s]
 	 */
-	def drive(speed : Short) : Unit = drive(speed,0)
+	def drive(speed : Short) : Unit = drive(speed,0x8000.toShort)
 	/**
 	 * Drive in a curve with a certain speed and a certain radius
 	 * @param speed The average speed of the wheels [mm/s], in range [-500,500]

@@ -6,9 +6,10 @@ import org.github.triman.roomba.simulator.communication.ByteStreamCommunicatorCo
 import java.nio.ByteBuffer
 import java.io.InputStream
 
-class TestRoomba extends AbstractRoomba with ByteStreamCommunicatorContainer
-
 class RoombaSpec extends FlatSpec with Matchers with BeforeAndAfter{
+	
+	class TestRoomba extends AbstractRoomba with ByteStreamCommunicatorContainer
+	
 	var roomba : TestRoomba = null
 	var in : InputStream = null
 	before {

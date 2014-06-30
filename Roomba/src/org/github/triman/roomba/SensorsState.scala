@@ -80,7 +80,7 @@ class SensorsState (
 		 * the actual angle or distance.
 		 * Range: -32768 – 32767
 		 */
-		val angle : Option[Int],
+		val angle : Option[Double],
 		/**
 		 * A code indicating the current charging state of Roomba.
 		 */
@@ -118,7 +118,7 @@ class SensorsState (
 		 */
 		val capacity : Option[Int]
 		)
-object SensorState {
+object SensorsState {
 	def getSensorState(sensorPacket: SensorPacket, values : Array[Byte]) : SensorsState = sensorPacket match {
 		/**
 		 * 26 bytes
@@ -162,21 +162,21 @@ object SensorState {
 				Option((values(11) & 0x02) > 0),
 				Option((values(11) & 0x01) > 0),
 				// distance
-				Option(byteArray2Short(values.slice(12,2))),
+				Option(byteArray2Short(values.slice(12,14))),
 				// angle
-				Option(byteArray2Short(values.slice(14,2))),
+				Option(byteArray2Short(values.slice(14,16))),
 				// charging status
 				Option(byteArray2Int(Array(values(16)))),
 				// voltage
-				Option(byteArray2Int(values.slice(17,2))),
+				Option(byteArray2Int(values.slice(17,19))),
 				// current
-				Option(byteArray2Short(values.slice(18,2))),
+				Option(byteArray2Short(values.slice(19,21))),
 				// temperature
 				Option(values(21).toInt),
 				// charge
-				Option(byteArray2Int(values.slice(22,2))),
+				Option(byteArray2Int(values.slice(22,24))),
 				// capacity
-				Option(byteArray2Int(values.slice(24,2)))
+				Option(byteArray2Int(values.slice(24,26)))
 			)
 		}
 		case Detectors => {
@@ -238,111 +238,111 @@ object SensorState {
 		case Controls => {
 			new SensorsState(
 				// bumps and wheeldrops
-				Option((values(0) & 0x10) > 0),
-				Option((values(0) & 0x08) > 0),
-				Option((values(0) & 0x04) > 0),
-				Option((values(0) & 0x02) > 0),
-				Option((values(0) & 0x01) > 0),
+				None,
+				None,
+				None,
+				None,
+				None,
 				// wall
-				Option((values(1) & 0x01) > 0),
+				None,
 				// cliff left
-				Option((values(2) & 0x01) > 0),
+				None,
 				// cliff front left
-				Option((values(3) & 0x01) > 0),
+				None,
 				// cliff front right
-				Option((values(4) & 0x01) > 0),
+				None,
 				// cliff right
-				Option((values(5) & 0x01) > 0),
+				None,
 				// virtual wall
-				Option((values(6) & 0x01) > 0),
+				None,
 				// motor overcurrents
-				Option((values(7) & 0x10) > 0),
-				Option((values(7) & 0x08) > 0),
-				Option((values(7) & 0x04) > 0),
-				Option((values(7) & 0x02) > 0),
-				Option((values(7) & 0x01) > 0),
+				None,
+				None,
+				None,
+				None,
+				None,
 				// dirt detector left
-				Option(byteArray2Int(Array(values(8)))),
+				None,
 				// dirt detector right
-				Option(byteArray2Int(Array(values(9)))),
+				None,
 				// remote control
-				Option(byteArray2Int(Array(values(10)))),
+				Option(byteArray2Int(Array(values(0)))),
 				// buttons
-				Option((values(11) & 0x08) > 0),
-				Option((values(11) & 0x04) > 0),
-				Option((values(11) & 0x02) > 0),
-				Option((values(11) & 0x01) > 0),
+				Option((values(1) & 0x08) > 0),
+				Option((values(1) & 0x04) > 0),
+				Option((values(1) & 0x02) > 0),
+				Option((values(1) & 0x01) > 0),
 				// distance
-				Option(byteArray2Short(values.slice(12,2))),
+				Option(byteArray2Short(values.slice(2,5))),
 				// angle
-				Option(byteArray2Short(values.slice(14,2))),
+				Option(byteArray2Short(values.slice(3,5)).toDouble/129),
 				// charging status
-				Option(byteArray2Int(Array(values(16)))),
+				None,
 				// voltage
-				Option(byteArray2Int(values.slice(17,2))),
+				None,
 				// current
-				Option(byteArray2Short(values.slice(18,2))),
+				None,
 				// temperature
-				Option(values(21).toInt),
+				None,
 				// charge
-				Option(byteArray2Int(values.slice(22,2))),
+				None,
 				// capacity
-				Option(byteArray2Int(values.slice(24,2)))
+				None
 			)
 		}
 		case Health => {
 			new SensorsState(
 				// bumps and wheeldrops
-				Option((values(0) & 0x10) > 0),
-				Option((values(0) & 0x08) > 0),
-				Option((values(0) & 0x04) > 0),
-				Option((values(0) & 0x02) > 0),
-				Option((values(0) & 0x01) > 0),
+				None,
+				None,
+				None,
+				None,
+				None,
 				// wall
-				Option((values(1) & 0x01) > 0),
+				None,
 				// cliff left
-				Option((values(2) & 0x01) > 0),
+				None,
 				// cliff front left
-				Option((values(3) & 0x01) > 0),
+				None,
 				// cliff front right
-				Option((values(4) & 0x01) > 0),
+				None,
 				// cliff right
-				Option((values(5) & 0x01) > 0),
+				None,
 				// virtual wall
-				Option((values(6) & 0x01) > 0),
+				None,
 				// motor overcurrents
-				Option((values(7) & 0x10) > 0),
-				Option((values(7) & 0x08) > 0),
-				Option((values(7) & 0x04) > 0),
-				Option((values(7) & 0x02) > 0),
-				Option((values(7) & 0x01) > 0),
+				None,
+				None,
+				None,
+				None,
+				None,
 				// dirt detector left
-				Option(byteArray2Int(Array(values(8)))),
+				None,
 				// dirt detector right
-				Option(byteArray2Int(Array(values(9)))),
+				None,
 				// remote control
-				Option(byteArray2Int(Array(values(10)))),
+				None,
 				// buttons
-				Option((values(11) & 0x08) > 0),
-				Option((values(11) & 0x04) > 0),
-				Option((values(11) & 0x02) > 0),
-				Option((values(11) & 0x01) > 0),
+				None,
+				None,
+				None,
+				None,
 				// distance
-				Option(byteArray2Short(values.slice(12,2))),
+				None,
 				// angle
-				Option(byteArray2Short(values.slice(14,2))),
+				None,
 				// charging status
-				Option(byteArray2Int(Array(values(16)))),
+				Option(byteArray2Int(Array(values(0)))),
 				// voltage
-				Option(byteArray2Int(values.slice(17,2))),
+				Option(byteArray2Int(values.slice(1,3))),
 				// current
-				Option(byteArray2Short(values.slice(18,2))),
+				Option(byteArray2Short(values.slice(3,5))),
 				// temperature
-				Option(values(21).toInt),
+				Option(values(5).toInt),
 				// charge
-				Option(byteArray2Int(values.slice(22,2))),
+				Option(byteArray2Int(values.slice(6,8))),
 				// capacity
-				Option(byteArray2Int(values.slice(24,2)))
+				Option(byteArray2Int(values.slice(8,10)))
 			)
 		}
 	}

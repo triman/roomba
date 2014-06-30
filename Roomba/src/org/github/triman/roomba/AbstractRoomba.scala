@@ -118,7 +118,7 @@ abstract class AbstractRoomba extends IRoomba{
 	def drive(speed : Short, radius : Short) : Unit = {
 		assume(isStarted, "The interface should be started first")
 		assume(isUserControlEnabled, "The roomba should be in safe or full mode before isuing the max command")
-		require(speed >= -500 && speed <= 500 && radius >= -2000 && radius <= 2000)
+		require(speed >= -500 && speed <= 500 && (radius == 0x8000.toShort || (radius >= -2000 && radius <= 2000)))
 		
 		communicator ! (Drive.opcode +: short2ByteArray(speed)) ++ short2ByteArray(radius)
 	}

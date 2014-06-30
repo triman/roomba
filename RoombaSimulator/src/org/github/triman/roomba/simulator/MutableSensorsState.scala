@@ -88,7 +88,7 @@ class MutableSensorsState(
 		 * the actual angle or distance.
 		 * Range: -32768 – 32767
 		 */
-		var angle : Option[Int],
+		var angle : Option[Double],
 		/**
 		 * A code indicating the current charging state of Roomba.
 		 */
@@ -207,7 +207,7 @@ class MutableSensorsState(
 					+ (if (!cleanButton.isEmpty && cleanButton.get) 2 else 0)
 					+ (if (!maxButton.isEmpty && maxButton.get) 1 else 0)
 				).toByte
-			) ++ (short2ByteArray((if (distance.isEmpty) 0 else distance.get).toShort)	++ short2ByteArray((if (angle.isEmpty) 0 else angle.get).toShort))
+			) ++ (short2ByteArray((if (distance.isEmpty) 0 else distance.get).toShort)	++ short2ByteArray((if (angle.isEmpty) 0 else 129*angle.get).toShort))
 		}
 		case Health => {
 			Array(

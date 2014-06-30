@@ -17,12 +17,10 @@ object ByteOperations {
 	}
 	def byteArray2Int(a : Array[Byte]) = {
 		val ar = Array.fill(Math.max(0,4 - a.length)){0.toByte} ++ a
-		ar.foreach(b => println(b))
 		ByteBuffer.wrap(ar).order(ByteOrder.BIG_ENDIAN).asIntBuffer().get()
 	}
 	def byteArray2Short(a : Array[Byte]) = {
 		val ar = Array.fill(Math.max(0,2 - a.length)){0.toByte} ++ a
-		ar.foreach(b => println(b))
-		ByteBuffer.wrap(ar).order(ByteOrder.BIG_ENDIAN).asIntBuffer().get()
+		ByteBuffer.wrap(ar).order(ByteOrder.BIG_ENDIAN).asShortBuffer().get()
 	}
 }

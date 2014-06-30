@@ -78,7 +78,7 @@ trait ISensorsState {
 		 * the actual angle or distance.
 		 * Range: -32768 – 32767
 		 */
-		def angle : Option[Int]
+		def angle : Option[Double]
 		/**
 		 * A code indicating the current charging state of Roomba.
 		 */
