@@ -273,9 +273,9 @@ object SensorsState {
 				Option((values(1) & 0x02) > 0),
 				Option((values(1) & 0x01) > 0),
 				// distance
-				Option(byteArray2Short(values.slice(2,5))),
+				Option(byteArray2Short(values.slice(2,4))),
 				// angle
-				Option(byteArray2Short(values.slice(3,5)).toDouble/129),
+				Option(byteArray2Short(values.slice(4,6)).toDouble/129),
 				// charging status
 				None,
 				// voltage

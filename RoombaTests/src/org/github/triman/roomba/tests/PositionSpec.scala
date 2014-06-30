@@ -65,16 +65,16 @@ class PositionSpec  extends FlatSpec with Matchers with BeforeAndAfter{
 		
 		w.await()
 	}
-	it should "be at position (1000,0) after having driven 1000mm straight" in {
+	it should "be at position (866,500) after having driven 1000mm straight with an initial angle of pi/6" in {
+		roomba.state.angle = Option(Math.PI/6)
 		roomba.drive(100)
-		roomba.state.angle = Option(Math.PI/2.0)
 		roomba.state.distance = Option(1000)
 		
 		val w = new Waiter
 		roomba.position.attend(p => {
 			w {
-					p.x should be (1000)
-					p.y should be (0)
+					p.x should be (866 +- 10) // we accept a 1% rounding error
+					p.y should be (500 +- 5) // we accept a 1% rounding error
 				}
 			w.dismiss()
 		})

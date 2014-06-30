@@ -6,22 +6,36 @@ import org.github.triman.roomba.AllSensors
 import org.github.triman.roomba.Detectors
 import org.github.triman.roomba.Controls
 import org.github.triman.roomba.Health
+import org.github.triman.roomba.PositionableRoomba
+import org.github.triman.roomba.simulator.communication.ByteStreamCommunicatorContainer
+import java.io.PipedInputStream
+import org.github.triman.roomba.AbstractRoomba
+import scala.concurrent.Await
+import scala.concurrent.duration._
+import org.github.triman.roomba.ISensorsState
+import org.github.triman.roomba.SensorsState
 
-class SensorsStateSpec extends FlatSpec with Matchers{
-	"A SensorState" should "be serialized to a total of 26 bytes" in {
-		val s = new MutableSensorsState
-		s.getByteArray(AllSensors).length should be (26)
+class SensorsDataSpec extends FlatSpec with Matchers with BeforeAndAfter{
+	
+	class TestRoomba extends AbstractRoomba with ByteStreamCommunicatorContainer with PositionableRoomba
+
+	var roomba : TestRoomba = null
+	var in : PipedInputStream = null
+	before {
+		roomba = new TestRoomba
+		roomba.start
+		roomba.baud(300)
+		roomba.control
+		in = roomba.asInstanceOf[ByteStreamCommunicatorContainer].in
+		in.read(new Array[Byte](in.available()))
+		}
+	after{
 	}
-	it should "be 10 bytes long for the detectors" in {
-		val s = new MutableSensorsState
-		s.getByteArray(Detectors).length should be (10)
-	}
-	it should "be 6 bytes long for the controls" in {
-		val s = new MutableSensorsState
-		s.getByteArray(Controls).length should be (6)
-	}
-	it should "be 10 bytes long for the health" in {
-		val s = new MutableSensorsState
-		s.getByteArray(Health).length should be (10)
+	
+	"A roomba with a specified angle of PI/6" should "return PI/6 when asked for its angle" in {
+		roomba.state.angle = Option(Math.PI/6.0)
+		val s = roomba.sensor(Controls)
+		val state = Await.result(s, 5 seconds).asInstanceOf[Array[Byte]]
+		SensorsState.getSensorState(Controls, state).angle.get should be (Math.PI/6.0 +- 0.01)
 	}
 }
