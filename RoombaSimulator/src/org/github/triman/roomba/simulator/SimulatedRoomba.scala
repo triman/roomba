@@ -1,16 +1,13 @@
 package org.github.triman.roomba.simulator
 
 import akka.actor.Props
-
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.awt.Point
 import java.awt.Shape
 import scala.compat.Platform
-
 import scala.concurrent.Future
 import scala.concurrent.ExecutionContext.Implicits.global
-
 import org.github.triman.roomba.SensorPacket
 import org.github.triman.roomba.Drive
 import org.github.triman.roomba.Sensors
@@ -18,9 +15,9 @@ import org.github.triman.roomba.AllSensors
 import org.github.triman.roomba.Detectors
 import org.github.triman.roomba.Controls
 import org.github.triman.roomba.Health
-
 import org.github.triman.roomba.utils.Notifier
 import org.github.triman.roomba.utils.PositionUtil
+import org.github.triman.roomba.simulator.communication.RoombaSocketServer
 
 /**
  * Class that describes the simulated roomba.
@@ -126,6 +123,8 @@ class SimulatedRoomba {
 		}
 	}
 	
+	/// -- CALLBACKS --
+	// ToDo : add callbacks for the different operations
 	/**
 	 * callback for the 
 	 * @param packet The sensors packet to get.
@@ -141,8 +140,23 @@ class SimulatedRoomba {
 		null
 	}
 	
+	/// -- INET SERVER --
+	
+	private val roombaSocketServer = new RoombaSocketServer
+	roombaSocketServer.onStart = Some(() => {println("Start!")})
+	/**
+	 * Starts the roomba
+	 */
+	def start() : Unit = {
+		roombaSocketServer.start
+	}
+		
+	/**
+	 * Shutdown the simulated roomba
+	 */
 	def shutdown()  : Unit = {
-		simulationWorker stop
+		simulationWorker.stop
+		roombaSocketServer.stop
 	}
 	
 }
