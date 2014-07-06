@@ -20,7 +20,7 @@ class RoombaSocketServer extends Thread{
     }
     catch {
       case e: IOException =>
-        System.err.println("Could not listen on port: 9999.");
+        System.err.println("[ " + Console.RED + "RSS" + Console.RESET +" ] Could not listen on port: 9999.");
         System.exit(-1)
     }
 	}
@@ -30,7 +30,7 @@ class RoombaSocketServer extends Thread{
 	 */
 	class RoombaServerThread(val socket : Socket) extends Thread {
 		override def run(){
-			println("[ RSS ] New client connected : " + socket.getInetAddress().toString())
+			println("[ " + Console.GREEN + "RSS" + Console.RESET +" ] New client connected : " + socket.getInetAddress().toString())
 			try {
 				val out = socket.getOutputStream()
 		    val in = socket.getInputStream()
@@ -39,7 +39,7 @@ class RoombaSocketServer extends Thread{
 		    	val b = in.read()
 		    	b.toByte match {
 		    		case Start.opcode => if (onStart.isDefined) onStart.get ()
-		    		case _ => println("[ RSS ] Unknown command recieved : " + b.toString)
+		    		case _ => println("[ " + Console.YELLOW + "RSS" + Console.RESET +" ] Unknown command recieved : " + b.toString)
 		    	}
 		    }
 			}catch {
