@@ -12,7 +12,7 @@ import java.io.PipedInputStream
 import org.github.triman.roomba.AbstractRoomba
 import scala.concurrent.Await
 import scala.concurrent.duration._
-import org.github.triman.roomba.ISensorsState
+import org.github.triman.roomba.AbstractSensorsState
 import org.github.triman.roomba.SensorsState
 
 class SensorsDataSpec extends FlatSpec with Matchers with BeforeAndAfter{

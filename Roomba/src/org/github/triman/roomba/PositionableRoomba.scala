@@ -9,6 +9,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.Success
 import org.github.triman.roomba.SensorsState
 import scala.util.Failure
+import scala.compat.Platform
 
 abstract sealed class PositionComputationType
 case object InterpolatedPosition extends PositionComputationType
@@ -30,11 +31,11 @@ trait PositionableRoomba extends IRoomba{
 	/**
 	 * Target speed [mm/s]
 	 */
-	private val speed = new AtomicReference[Int](0)
+	protected val speed = new AtomicReference[Int](0)
 	/**
 	 * Target radius [mm]
 	 */
-	private val radius = new AtomicReference[Int](0)
+	protected val radius = new AtomicReference[Int](0)
 	
 	private var lastEnsuredAngle = 0.0
 	private var lastEnsuredPosition = new Point(0,0)
@@ -42,7 +43,7 @@ trait PositionableRoomba extends IRoomba{
 	/**
 	 * Time between 2 refresh of the position (computation) [ms]
 	 */
-	var positionRefreshDuration : Int = 50
+	var positionRefreshDuration : Int = 100
 	
 	/// -- usage of the function calls to get informations --
 	import ExecutionContext.Implicits.global
@@ -54,7 +55,7 @@ trait PositionableRoomba extends IRoomba{
 	 * @param d Driven distance
 	 * @param r Radius
 	 */
-	private def computePosition(p0 : Point, t0 : Double, d : Int, r : Int) : (Point, Double) = {
+	def computePosition(p0 : Point, t0 : Double, d : Int, r : Int) : (Point, Double) = {
 		import Math._
 		if (r == 0x8000.toShort) { // driving straight
 			val p = new Point(
@@ -113,6 +114,59 @@ trait PositionableRoomba extends IRoomba{
 		// set the current speed and radius
 		this.speed.set(speed)
 		this.radius.set(radius)
+		if(speed > 0){
+			// start computation
+			positionComputationWorker.start
+		}else{
+			positionComputationWorker.stop
+		}
+	}
+	
+	/**
+	 * Worker to compute the new position
+	 */
+	private object positionComputationWorker {
+		private var t : Thread = null;
+		/**
+		 * Starts the worker
+		 */
+		def start(){
+			synchronized{
+				stop()
+				
+				t = new Thread{
+					override def run(){
+						val p0 = position()
+						val a0 = angle()
+						val t0 = Platform.currentTime
+						// compute the new position every positionRefreshDuration ms
+						while(true){
+							// new distance
+							val t1 = Platform.currentTime - t0
+							val d = (speed.get() * t1).toInt / 1000
+							
+							val p1 = computePosition(p0, a0, d, radius.get())
+							_positionComputationType = ComputedPosition
+							position.update(p1._1)
+							angle.update(p1._2)
+							
+							Thread.sleep(positionRefreshDuration)
+						}
+					}
+				}
+				t.start
+			}
+		}
+		/**
+		 * Forces the worker to stop
+		 */
+		def stop(){
+			synchronized{
+				if(t != null && t.isAlive()){
+					t.stop
+				}
+			}
+		}
 	}
 	
 }

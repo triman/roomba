@@ -6,5 +6,12 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/Roomba"/>
 	<classpathentry kind="lib" path="akka-actor_2.10-2.3.3.jar"/>
 	<classpathentry kind="lib" path="config-1.2.1.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/ScalaGui"/>
+	<classpathentry kind="lib" path="scala-swing-2.10.4.jar"/>
+	<classpathentry kind="lib" path="batik-parser.jar"/>
+	<classpathentry kind="lib" path="/Users/julien/Downloads/batik-1.7/lib/batik-awt-util.jar"/>
+	<classpathentry kind="lib" path="/Users/julien/Downloads/batik-1.7/lib/batik-ext.jar"/>
+	<classpathentry kind="lib" path="/Users/julien/Downloads/batik-1.7/lib/batik-gui-util.jar"/>
+	<classpathentry kind="lib" path="/Users/julien/Downloads/batik-1.7/lib/batik-util.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
