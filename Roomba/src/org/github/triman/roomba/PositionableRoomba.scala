@@ -10,6 +10,7 @@ import scala.util.Success
 import org.github.triman.roomba.SensorsState
 import scala.util.Failure
 import scala.compat.Platform
+import org.github.triman.roomba.utils.PositionUtil
 
 abstract sealed class PositionComputationType
 case object InterpolatedPosition extends PositionComputationType
@@ -48,30 +49,6 @@ trait PositionableRoomba extends IRoomba{
 	/// -- usage of the function calls to get informations --
 	import ExecutionContext.Implicits.global
 	
-	/**
-	 * Computes the new position after a displacement
-	 * @param p0 Initial position [mm, mm]
-	 * @param a0 Initial angle [rad]
-	 * @param d Driven distance
-	 * @param r Radius
-	 */
-	def computePosition(p0 : Point, t0 : Double, d : Int, r : Int) : (Point, Double) = {
-		import Math._
-		if (r == 0x8000.toShort) { // driving straight
-			val p = new Point(
-				(p0.x + d*cos(t0)).round.toInt,
-				(p0.y + d*sin(t0)).round.toInt)
-			(p, t0)
-		} else { // driving along an arc
-		val dt = d.toDouble / r.toDouble
-		val p = new Point(
-			(p0.x - r*sin(t0) + r*sin(t0 + dt)).round.toInt,
-			(p0.y + r*cos(t0) - r*cos(t0 + dt)).round.toInt)
-			(p, t0 + dt)
-		}
-		
-	}
-	
 	// position computation callback
 	private def sensorCallback(packet : SensorPacket, values : Try[Any]) : Unit = {
 		values match {
@@ -79,7 +56,8 @@ trait PositionableRoomba extends IRoomba{
 				val sensorsState = SensorsState.getSensorState(packet, v.asInstanceOf[Array[Byte]])
 				if(sensorsState.angle.isDefined && sensorsState.distance.isDefined){
 					// compute position from radius, initial angle and distance
-					val p = computePosition(lastEnsuredPosition,lastEnsuredAngle, sensorsState.distance.get ,radius.get)
+					val p = PositionUtil.getPointAndAngleOnCircularPath(lastEnsuredPosition, lastEnsuredAngle,
+							sensorsState.distance.get ,radius.get)
 					lastEnsuredAngle += sensorsState.angle.get
 					lastEnsuredPosition = p._1
 					position.update(p._1)
@@ -145,7 +123,7 @@ trait PositionableRoomba extends IRoomba{
 							val t1 = Platform.currentTime - t0
 							val d = (speed.get() * t1).toInt / 1000
 							
-							val p1 = computePosition(p0, a0, d, radius.get())
+							val p1 = PositionUtil.getPointAndAngleOnCircularPath(p0, a0, d, radius.get())
 							_positionComputationType = ComputedPosition
 							position.update(p1._1)
 							angle.update(p1._2)

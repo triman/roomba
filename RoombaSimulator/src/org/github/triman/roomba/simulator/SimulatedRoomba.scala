@@ -1,72 +1,31 @@
 package org.github.triman.roomba.simulator
 
-import org.github.triman.roomba.AbstractRoomba
-import org.github.triman.roomba.PositionableRoomba
-import org.github.triman.roomba.communication.CommunicatorContainer
-import akka.actor.ActorSystem
 import akka.actor.Props
-import org.github.triman.roomba.communication.RoombaCommunicator
+
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
+import java.awt.Point
+import java.awt.Shape
+import scala.compat.Platform
+
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+
+import org.github.triman.roomba.SensorPacket
+import org.github.triman.roomba.Drive
 import org.github.triman.roomba.Sensors
 import org.github.triman.roomba.AllSensors
 import org.github.triman.roomba.Detectors
 import org.github.triman.roomba.Controls
 import org.github.triman.roomba.Health
-import akka.actor.PoisonPill
-import java.util.concurrent.atomic.AtomicBoolean
-import java.awt.Point
-import java.util.concurrent.atomic.AtomicReference
-import scala.compat.Platform
-import java.awt.Shape
-import org.github.triman.roomba.Drive
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
+
 import org.github.triman.roomba.utils.Notifier
-import org.github.triman.roomba.SensorPacket
-
-/**
- * Communication container for the simulated roomba
- */
-trait SimulatorCommunicationContainer extends CommunicatorContainer{
-	val system = ActorSystem("ActorSystem")
-	override val communicator = system.actorOf(SimulatorCommunicator.props)
-
-	object SimulatorCommunicator {
-		def props(): Props = Props(new SimulatorCommunicator)
-	}
-	
-	val state = new MutableSensorsState()
-	
-	/**
-	 * Message handler for the simulated roomba's actions.
-	 * ToDo: add logic to drive the roomba. This should be used along with some physical simulation layer
-	 */
-	class SimulatorCommunicator extends RoombaCommunicator {
-		
-		def receive = {
-			case b : Byte => { /* ToDo: implement this */ }
-			case Array(Sensors.opcode,s : Byte) => {
-				s match {
-					case AllSensors.code => sender ! state.getByteArray(AllSensors)
-					case Detectors.code	 => sender ! state.getByteArray(Detectors)
-					case Controls.code	 => sender ! state.getByteArray(Controls)
-					case Health.code	 => sender ! state.getByteArray(Health)
-					case _ => throw new IllegalArgumentException
-				}
-			}
-			case a : Array[Byte] => { /* ToDo: implement this */}
-		}
-	}
-	override def shutdown()  : Unit = {
-		communicator ! PoisonPill
-		system shutdown
-	}
-	
-} 
+import org.github.triman.roomba.utils.PositionUtil
 
 /**
  * Class that describes the simulated roomba.
  */
-class SimulatedRoomba extends AbstractRoomba with SimulatorCommunicationContainer with PositionableRoomba{
+class SimulatedRoomba {
 	
 	private val isRunning = new AtomicBoolean(false)
 	
@@ -77,6 +36,10 @@ class SimulatedRoomba extends AbstractRoomba with SimulatorCommunicationContaine
 	 */
 	val simulatedPosition = new Notifier[Point, Symbol](new Point(0,0)){def id = 'RoombaSimulatedPositionChange}
 	val simulatedAngle = new Notifier[Double, Symbol](0){def id = 'RoombaSimulatedAngleChange}
+	
+	val speed = new AtomicReference[Int](0)
+	val radius = new AtomicReference[Int](0)
+	
 	/**
 	 * Timestamp when the last "Drive" command was issued
 	 */
@@ -118,8 +81,8 @@ class SimulatedRoomba extends AbstractRoomba with SimulatorCommunicationContaine
 				
 				t = new Thread{
 					override def run(){
-						val p0 = position()
-						val a0 = angle()
+						val p0 = simulatedPosition()
+						val a0 = simulatedAngle()
 						val t0 = Platform.currentTime
 						// compute the new position every positionRefreshDuration ms
 						while(true){
@@ -129,7 +92,7 @@ class SimulatedRoomba extends AbstractRoomba with SimulatorCommunicationContaine
 								// compute position
 								val dt = Platform.currentTime - t0
 								val d = (speed.get() * dt).toInt / 1000
-								val p1 = computePosition(p0, a0, d, radius.get())
+								val p1 = PositionUtil.getPointAndAngleOnCircularPath(p0, a0, d, radius.get())
 								simulatedPosition update p1._1
 								simulatedAngle update p1._2
 								// compute bumps
@@ -164,21 +127,21 @@ class SimulatedRoomba extends AbstractRoomba with SimulatorCommunicationContaine
 	}
 	
 	/**
-	 * Get the sensors data.
+	 * callback for the 
 	 * @param packet The sensors packet to get.
 	 */
-	override def sensor(packet : SensorPacket) : Future[Any] = {
-		val r = super.sensor(packet)
+	def onSensor(packet : SensorPacket) : Array[Byte] = {
 		// set the last time we cot data = now, and the offset distance to 0
 		if(packet == Controls || packet == AllSensors){
 			lastControlsGetTimestamp set Platform.currentTime
 			distanceAtLastDriveCommand set 0
 			angleAtLastDriveCommand set 0
 		}
-		return r
+		// ToDo: send the serialized sensor data
+		null
 	}
 	
-	override def shutdown()  : Unit = {
+	def shutdown()  : Unit = {
 		simulationWorker stop
 	}
 	
