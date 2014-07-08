@@ -21,7 +21,7 @@ trait PositionableRoomba extends IRoomba{
 	/**
 	 * Roomba's computed position
 	 */
-	val position = new Notifier[Point, Symbol](null){def id = 'RoombaPositionChange}
+	val position = new Notifier[Point, Symbol](new Point(0,0)){def id = 'RoombaPositionChange}
 	/**
 	 * Roomba's computed angle
 	 */

@@ -4,7 +4,7 @@ import java.net.ServerSocket
 import java.io.IOException
 import java.net.Socket
 import java.net.SocketException
-import org.github.triman.roomba.Start
+import org.github.triman.roomba._
 
 /**
  * Network interface for the roomba simulator, used to replace the serial connector with a phisical roomba.
@@ -39,6 +39,58 @@ class RoombaSocketServer extends Thread{
 		    	val b = in.read()
 		    	b.toByte match {
 		    		case Start.opcode => if (onStart.isDefined) onStart.get ()
+		    		case Baud.opcode 	=> {
+		    			assert(in.available >= 1, "The data byte(s) is/are not send")
+		    			val a = new Array[Byte](1)
+		    			in.read(a)
+		    			if (onBaud.isDefined) onBaud.get (a(0))
+		    		}
+		    		case Control.opcode => if (onControl.isDefined) onControl.get ()
+		    		case Safe.opcode	=> if (onSafe.isDefined) onSafe.get ()
+		    		case Full.opcode => if (onFull.isDefined) onFull.get ()
+		    		case Power.opcode => if (onPower.isDefined) onPower.get ()
+		    		case Spot.opcode => if (onSpot.isDefined) onSpot.get ()
+		    		case Clean.opcode => if (onClean.isDefined) onClean.get ()
+		    		case Max.opcode => if (onMax.isDefined) onMax.get ()
+		    		case Drive.opcode => {
+		    			assert(in.available >= 4, "The data byte(s) is/are not send")
+		    			val a = new Array[Byte](4)
+		    			in.read(a)
+		    			if (onDrive.isDefined) onDrive.get (a)
+		    			}
+		    		case Motors.opcode => {
+		    			assert(in.available >= 1, "The data byte(s) is/are not send")
+		    			val a = new Array[Byte](1)
+		    			in.read(a)
+		    			if (onMotors.isDefined) onMotors.get (a(0))
+		    			}
+		    		case Leds.opcode => {
+		    			assert(in.available >= 3, "The data byte(s) is/are not send")
+		    			val a = new Array[Byte](3)
+		    			in.read(a)
+		    			if (onLeds.isDefined) onLeds.get (a)
+		    			}
+		    		case Song.opcode => {
+		    			assert(in.available >= 2, "The data byte(s) is/are not send")
+		    			val a = new Array[Byte](2)
+		    			in.read(a)
+		    			val b = new Array[Byte](2*a(1))
+		    			in.read(b)
+		    			if (onSong.isDefined) onSong.get (a ++ b)
+		    			}
+		    		case Play.opcode => {
+		    			assert(in.available >= 1, "The data byte(s) is/are not send")
+		    			val a = new Array[Byte](1)
+		    			in.read(a)
+		    			if (onPlay.isDefined) onPlay.get (a(0))
+		    			}
+		    		case Sensors.opcode => {
+		    			assert(in.available >= 1, "The data byte(s) is/are not send")
+		    			val a = new Array[Byte](1)
+		    			in.read(a)
+		    			if (onSensors.isDefined) out write (onSensors.get (a(0)))
+		    			}
+		    		case ForceSeekingDock.opcode => if (onForceSeekingDock.isDefined) onForceSeekingDock.get ()
 		    		case _ => println("[ " + Console.YELLOW + "RSS" + Console.RESET +" ] Unknown command recieved : " + b.toString)
 		    	}
 		    }

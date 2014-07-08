@@ -18,6 +18,8 @@ import org.github.triman.roomba.Health
 import org.github.triman.roomba.utils.Notifier
 import org.github.triman.roomba.utils.PositionUtil
 import org.github.triman.roomba.simulator.communication.RoombaSocketServer
+import org.github.triman.roomba.utils.ByteOperations
+import org.github.triman.roomba.SensorsState
 
 /**
  * Class that describes the simulated roomba.
@@ -184,6 +186,16 @@ class SimulatedRoomba {
 	 */
 	def onDrive(data: Array[Byte]): Unit = {
 		println("[ " + Console.GREEN + "SIM" + Console.RESET +" ] Drive")
+		// ToDo: set speed and radius
+		speed.set(ByteOperations.byteArray2Short(data.slice(0,2)))
+		radius.set(ByteOperations.byteArray2Short(data.slice(2,4)))
+		println("\t speed: " + speed.get + " , radius: " + radius.get)
+		if(speed.get > 0){
+			simulationWorker start
+		}else{
+			simulationWorker stop
+		}
+		
 	}
 	/**
 	 * Callback for the Motors command
@@ -221,8 +233,15 @@ class SimulatedRoomba {
 			distanceAtLastDriveCommand set 0
 			angleAtLastDriveCommand set 0
 		}
+		// ToDo : get real state
+		val s = new MutableSensorsState
 		// ToDo: send the serialized sensor data
-		null
+		code match {
+			case AllSensors.code => s.getByteArray(AllSensors)
+			case Detectors.code => s.getByteArray(Detectors)
+			case Controls.code => s.getByteArray(Controls)
+			case Health.code => s.getByteArray(Health)
+		}
 	}
 	/**
 	 * Callback for the ForceSeekingDock command
