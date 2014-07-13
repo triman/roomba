@@ -21,12 +21,15 @@ object SVGUtils {
 		
 		// process the xml into shapes
 		svg.descendant.foreach(computeShape)
-		
 		def computeShape(node : Node) = {
 			val fill = node.attribute("fill")
 			val stroke = node.attribute("stroke")
-			node.label match {
+			val opacity = node.attribute("opacity")
+			val fillOpacity = node.attribute("fill-opacity")
+			val strokeOpacity = node.attribute("stroke-opacity")
+			val drawable : ColoredDrawableShape = node.label match {
 				case "circle" => {
+					var d : ColoredDrawableShape = null
 					val cx = node.attribute("cx")
 					val cy = node.attribute("cy")
 					val r = node.attribute("r")
@@ -34,45 +37,55 @@ object SVGUtils {
 					if(cx.isDefined && cy.isDefined && r.isDefined){
 						var rd = r.head.text.toDouble
 						var s = new Ellipse2D.Double(cx.head.text.toDouble -rd, cy.head.text.toDouble -rd, 2*rd, 2*rd)
-						val d = new ColoredDrawableShape(DrawableShapeCompanion.Shape2DrawableShape(s))
-						
-						if(fill.isDefined){
-							d.fill = if(fill.head.text == "none") TRANSPARENT else Color.decode(fill.head.text)
-						}else{
-							d.fill = TRANSPARENT
-						}
-						if(stroke.isDefined){
-							d.color = if(stroke.head.text == "none") TRANSPARENT else Color.decode(stroke.head.text)
-						}else{
-							d.color = TRANSPARENT
-						}
-						
-						drawables += d
+						d = new ColoredDrawableShape(DrawableShapeCompanion.Shape2DrawableShape(s))
 					}
-					
+					d
 				}
 				case "path" => {
+					var dr : ColoredDrawableShape = null
 					val d = node.attribute("d")
 					if(d.isDefined){
 						val s = AWTPathProducer.createShape(new StringReader(d.get.head.text), 0)
-						val dr = new ColoredDrawableShape(DrawableShapeCompanion.Shape2DrawableShape(s))
-						
-						if(fill.isDefined){
-							dr.fill = if(fill.head.text == "none") TRANSPARENT else Color.decode(fill.head.text)
+						dr = new ColoredDrawableShape(DrawableShapeCompanion.Shape2DrawableShape(s))
+					}
+					dr
+				}
+				case _ => {/* Unknown */
+					null
+				}
+			}
+			if(drawable != null){
+				if(fill.isDefined){
+							var o = 255
+							if(opacity.isDefined){
+								o = (opacity.get.head.text.toDouble * 255).toInt
+							}
+							if(fillOpacity.isDefined){
+								o = (fillOpacity.get.text.toDouble * 255).toInt
+							}
+							drawable.fill = if(fill.head.text == "none") TRANSPARENT else {
+								var c = Color.decode(fill.head.text)
+								new Color(c.getRed, c.getGreen, c.getBlue, o)
+								}
 						}else{
-							dr.fill = TRANSPARENT
+							drawable.fill = TRANSPARENT
 						}
 						if(stroke.isDefined){
-							dr.color = if(stroke.head.text == "none") TRANSPARENT else Color.decode(stroke.head.text)
+							var o = 255
+							if(opacity.isDefined){
+								o = (opacity.get.text.toDouble * 255).toInt
+							}
+							if(strokeOpacity.isDefined){
+								o = (strokeOpacity.get.text.toDouble * 255).toInt
+							}
+							drawable.color = if(stroke.head.text == "none") TRANSPARENT else {
+								var c = Color.decode(stroke.head.text)
+								new Color(c.getRed, c.getGreen, c.getBlue, o)
+								}
 						}else{
-							dr.color = TRANSPARENT
+							drawable.color = TRANSPARENT
 						}
-						
-						drawables += dr
-					}
-					
-				}
-				case _ => {/* Unknown */}
+						drawables += drawable
 			}
 		}
 		

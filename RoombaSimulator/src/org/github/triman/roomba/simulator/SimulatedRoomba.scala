@@ -15,7 +15,7 @@ import org.github.triman.roomba.AllSensors
 import org.github.triman.roomba.Detectors
 import org.github.triman.roomba.Controls
 import org.github.triman.roomba.Health
-import org.github.triman.roomba.utils.Notifier
+import org.github.triman.utils.Notifier
 import org.github.triman.roomba.utils.PositionUtil
 import org.github.triman.roomba.simulator.communication.RoombaSocketServer
 import org.github.triman.roomba.utils.ByteOperations

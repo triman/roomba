@@ -18,44 +18,81 @@ import java.awt.geom.AffineTransform
 import javax.xml.parsers.SAXParserFactory
 import org.github.triman.roomba.simulator.utils.NonValidatingSAXParserFactory
 import scala.xml.Elem
+import org.github.triman.graphics.Drawable
+import scala.swing.BorderPanel
+import org.github.triman.window.StatusBar
+import scala.swing.Label
+import scala.swing.Alignment
+import scala.swing.MenuBar
+import scala.swing.Menu
+import scala.swing.MenuItem
+import scala.swing.Action
+import scala.swing.FileChooser
+import org.github.triman.roomba.simulator.RoombaSimulatorApplication
 /**
  * http://www.jasperpotts.com/blog/2007/07/svg-shape-2-java2d-code/
  */
 object MainWindow extends Frame {
-	def main(args: Array[String]): Unit = {
+	
+	private var _room: Drawable = null
 
-		var ry: Elem = null
-		if (args.length > 0) {
-			ry = XML.withSAXParser(NonValidatingSAXParserFactory.getInstance).loadString(Source.fromFile(args(0)).getLines().reduce(_ + _))
-		}
-
-		title = "Roomba simulator"
-		visible = true
-		peer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
-		val canvas = new Canvas
-		canvas.preferredSize = new Dimension(1000, 500)
-		canvas.background = Color.GRAY
-		contents = canvas
-
-		if (ry != null) {
-			val tr = new AffineTransform
-			tr.setToIdentity()
-			tr.scale(0.1, 0.1)
-			canvas.shapes += new TransformableDrawable(SVGUtils.svg2Drawable(ry), tr)
-			title += " - " + args(0)
+	def room = _room
+	def room_=(d: Drawable): Unit = {
+		// the room is ALWAYS the head of the shapes list -> it's drawed on the bottom layer
+		if (_room != null) {
+			canvas.shapes.update(0, d)
 		}
 		else {
-			println("No room")
+			d +=: canvas.shapes
 		}
-
-		val positionnedRoomba = RoombaSimGuiElements.roomba()
-		positionnedRoomba.transform.setToIdentity()
-
-		positionnedRoomba.transform.translate(100, 100)
-		positionnedRoomba.transform.rotate(-Math.PI / 2)
-
-		canvas.shapes += positionnedRoomba
-		canvas.shapes +=
-			new ColoredDrawableShape(new DrawableShape(new Ellipse2D.Double(-2, -2, 4, 4)), new Color(255,0,0,128), Color.RED)
+		_room = d
+		canvas.repaint()
 	}
+
+	private val container = new BorderPanel
+	contents = container
+	title = "Roomba simulator"
+	peer.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE)
+	val canvas = new Canvas
+
+	size = new Dimension(1000, 500)
+	canvas.background = Color.GRAY
+	container.layout(canvas) = BorderPanel.Position.Center
+
+	val statusBar = new StatusBar
+	container.layout(statusBar) = BorderPanel.Position.South
+
+	val zoomLevelLabel = new Label("zoom: " + (canvas.zoom() * 100).round.toString() + "%")
+	zoomLevelLabel.preferredSize = new Dimension(70, 15)
+	zoomLevelLabel.horizontalAlignment = Alignment.Left
+	canvas.zoom.attend(z => { zoomLevelLabel.text = "zoom: " + (z * 100).round.toString() + "%" })
+	statusBar.add(zoomLevelLabel)
+	
+	// roomba status
+	val roombaStatus = RoombaSimGuiElements.roombaStatus
+	canvas.shapes += roombaStatus
+	
+	
+	// menu
+	menuBar = new MenuBar
+    {
+       contents += new Menu("File")
+       {
+			contents += new MenuItem(new Action("Load room...")
+         {
+          def apply
+          {
+          	val chooser = new FileChooser
+          	val r = chooser.showOpenDialog(container)
+          	r match{
+          		case FileChooser.Result.Approve => {
+          				RoombaSimulatorApplication.loadRoom(chooser.selectedFile.getAbsolutePath())
+          			}
+          		case _ => {}
+          	}
+          }
+         })
+       }
+    }
+
 }

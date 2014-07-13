@@ -1,13 +1,12 @@
 package org.github.triman.roomba
 
-import org.github.triman.roomba.utils.Notifier
+import org.github.triman.utils.Notifier
 import java.awt.Point
 import java.util.concurrent.atomic.AtomicReference
 import scala.concurrent.Future
 import scala.util.Try
 import scala.concurrent.ExecutionContext
 import scala.util.Success
-import org.github.triman.roomba.SensorsState
 import scala.util.Failure
 import scala.compat.Platform
 import org.github.triman.roomba.utils.PositionUtil

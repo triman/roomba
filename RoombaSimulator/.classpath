@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="/Users/julien/Downloads/batik-1.7/lib/batik-ext.jar"/>
 	<classpathentry kind="lib" path="/Users/julien/Downloads/batik-1.7/lib/batik-gui-util.jar"/>
 	<classpathentry kind="lib" path="/Users/julien/Downloads/batik-1.7/lib/batik-util.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Utils"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

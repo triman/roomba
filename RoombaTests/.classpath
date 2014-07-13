@@ -8,5 +8,6 @@
 	<classpathentry kind="lib" path="akka-actor_2.10-2.3.3.jar"/>
 	<classpathentry kind="lib" path="config-1.2.1.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/RoombaSimulator"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/Utils"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
