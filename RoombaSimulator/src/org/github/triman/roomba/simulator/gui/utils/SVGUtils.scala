@@ -12,6 +12,9 @@ import java.awt.Color
 import org.apache.batik.parser.AWTPathProducer
 import java.io.StringReader
 import java.awt.geom.GeneralPath
+import scala.xml.XML
+import org.github.triman.roomba.simulator.utils.NonValidatingSAXParserFactory
+import scala.io.Source
 
 class SVGGroupProperties(val opacity: Int, val fillOpacity: Int, val strokeOpacity: Int)
 
@@ -152,9 +155,55 @@ object SVGUtils {
 	 * Process a full SVG tree into a Drawable element.
 	 * @param svg the SVG tree
 	 */
-	def svg2Drawable(svg: Elem): Drawable = {
-		assert(svg.label == "svg", "The root node of an SVG document should be an <svg></svg> tag")
+	def svg2Drawable(svg: Node): Drawable = {
 		val properties = new SVGGroupProperties(255, 255, 255)
 		processTagGroup(svg, properties)
+	}
+	
+	/**
+	 * Extracts a shape from the given SVG file for the given ID.
+	 * If the ID is not unique, then the first occurence is retrieved.
+	 * @param filePath Path of the SVG file
+	 * @param id ID of the shape to retrieve
+	 */
+	def extractSVGShapeWithId(filePath : String, id : String) : Drawable = {
+		val xml = readXML(filePath)
+		extractSVGShapeWithId(xml, id)
+	}
+	
+	/**
+	 * Extracts a shape from the given SVG file for the given ID.
+	 * If the ID is not unique, then the first occurence is retrieved.
+	 * @param url URL of the SVG file
+	 * @param id ID of the shape to retrieve
+	 */
+	def extractSVGShapeWithId(url : java.net.URL, id : String) : Drawable = {
+		val xml = XML.withSAXParser(NonValidatingSAXParserFactory.getInstance)
+			.loadString(Source.fromURL(url).getLines().reduce(_+_))
+		extractSVGShapeWithId(xml, id)
+	}
+	/**
+	 * Extracts a shape from the given SVG file for the given ID.
+	 * If the ID is not unique, then the first occurence is retrieved.
+	 * @param xml Content of the SVG file
+	 * @param id ID of the shape to retrieve
+	 */
+	def extractSVGShapeWithId(xml : Elem, id : String) : Drawable = {
+		// extract element
+		val elems = xml \\ "_" filter(n => n.attribute("id").exists(v => v.head.text==id))
+		if(elems.length == 0){
+			return null
+		}
+		svg2Drawable(elems.head)
+	}
+	
+	/**
+	 * Reads an XML file
+	 * @param filePath Path to the file which should be read.
+	 */
+	def readXML(filePath : String) = {
+		XML.withSAXParser(NonValidatingSAXParserFactory.getInstance)
+					.loadString(Source.fromFile(
+							filePath).getLines().reduce(_ + _))
 	}
 }

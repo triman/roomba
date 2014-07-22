@@ -67,12 +67,7 @@ object MainWindow extends Frame {
 	zoomLevelLabel.horizontalAlignment = Alignment.Left
 	canvas.zoom.attend(z => { zoomLevelLabel.text = "zoom: " + (z * 100).round.toString() + "%" })
 	statusBar.add(zoomLevelLabel)
-	
-	// roomba status
-	val roombaStatus = RoombaSimGuiElements.roombaStatus
-	canvas.shapes += roombaStatus
-	
-	
+		
 	// menu
 	menuBar = new MenuBar
     {
