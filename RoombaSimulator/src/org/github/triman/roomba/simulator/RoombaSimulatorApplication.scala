@@ -7,6 +7,7 @@ import org.github.triman.roomba.simulator.gui.MainWindow
 import javax.swing.UIManager
 import org.github.triman.roomba.simulator.gui.utils.SVGUtils
 import org.github.triman.roomba.simulator.gui.RoombaStatusDrawable
+import org.github.triman.roomba.simulator.environment.Room
 
 object RoombaSimulatorApplication {
 	
@@ -22,7 +23,7 @@ object RoombaSimulatorApplication {
 	val roombaStatus = RoombaStatusDrawable
 	MainWindow.canvas.shapes += roombaStatus
 	
-	var room : Drawable = null
+	var room : Room = null
 	
 	def main(args : Array[String]){
 		// retrieve the room
@@ -39,7 +40,6 @@ object RoombaSimulatorApplication {
 	
 	def loadRoom(filePath : String){
 		println("[ APP ] Loading room: " + filePath)
-			SVGUtils.extractSVGShapeWithId(filePath, "room")
 			room = RoombaSimGuiElements.room(filePath)
 			MainWindow.room = room
 			MainWindow.title = "Roomba simulator - " +filePath

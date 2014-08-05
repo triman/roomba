@@ -57,6 +57,7 @@ object MainWindow extends Frame {
 
 	size = new Dimension(1000, 500)
 	canvas.background = Color.GRAY
+	//canvas.backgroundDrawable = RoombaSimGuiElements.canvasBackground
 	container.layout(canvas) = BorderPanel.Position.Center
 
 	val statusBar = new StatusBar
