@@ -118,6 +118,7 @@ trait AbstractSensorsState {
 		 */
 		def capacity : Option[Int]
 		
+		
 		def getByteArray(packet : SensorPacket) : Array[Byte] = packet match {
 		case AllSensors => getByteArray(Detectors) ++ getByteArray(Controls) ++ getByteArray(Health)
 		case Detectors => {

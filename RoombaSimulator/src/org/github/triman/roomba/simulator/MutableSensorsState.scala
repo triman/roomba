@@ -157,4 +157,40 @@ class MutableSensorsState(
 		Option(0), 		 // charge
 		Option(0)			 // capacity
 	)
+	
+	def asImmutable : SensorsState = {
+			new SensorsState(
+				casterWheelDrop,
+				leftWheelDrop,
+				rightWheelDrop,
+				leftBump,
+				rightBump,
+				wall,
+				cliffLeft,
+				cliffFrontLeft,
+				cliffFrontRight,
+				cliffRight,
+				virtualWall,
+				motorOvercurrentLeft,
+				motorOvercurrentRight,
+				motorOvercurrentMainBrush,
+				motorOvercurrentVacuum,
+				motorOvercurrentSideBrush,
+				dirtDetectorLeft,
+				dirtDetectorRight,
+				remoteControlCommand,
+				powerButton,
+				spotButton,
+				cleanButton,
+				maxButton,
+				distance,
+				angle,
+				chargingState,
+				voltage,
+				current,
+				temperature,
+				charge,
+				capacity		
+			)
+		}
 }

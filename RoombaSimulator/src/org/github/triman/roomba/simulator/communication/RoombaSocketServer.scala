@@ -11,8 +11,9 @@ import org.github.triman.roomba._
  */
 class RoombaSocketServer extends Thread{
 	override def run() {
+		val port = 15000
 		try {
-      val listener = new ServerSocket(15000);
+      val listener = new ServerSocket(port)
       println("[ RSS ] Listening on : " + listener.getInetAddress + " : " + listener.getLocalPort)
       while (true)
         new RoombaServerThread(listener.accept()).start();
@@ -20,7 +21,7 @@ class RoombaSocketServer extends Thread{
     }
     catch {
       case e: IOException =>
-        System.err.println("[ " + Console.RED + "RSS" + Console.RESET +" ] Could not listen on port: 9999.");
+        System.err.println("[ " + Console.RED + "RSS" + Console.RESET +" ] Could not listen on port: " + port +": " + e.getMessage + ".");
         System.exit(-1)
     }
 	}
@@ -37,6 +38,10 @@ class RoombaSocketServer extends Thread{
 		    
 		    while(true){
 		    	val b = in.read()
+		    	if(b == -1){
+		    		println("[ RSS ] Client disconnected : " + socket.getInetAddress + " : " + socket.getLocalPort)
+		    		return
+		    	}
 		    	b.toByte match {
 		    		case Start.opcode => if (onStart.isDefined) onStart.get ()
 		    		case Baud.opcode 	=> {

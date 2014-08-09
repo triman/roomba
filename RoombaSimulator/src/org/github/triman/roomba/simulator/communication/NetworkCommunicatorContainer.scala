@@ -30,10 +30,8 @@ trait NetworkCommunicatorContainer extends CommunicatorContainer {
 
 	val socket = new Socket(hostName, portNumber)
 	val out = socket.getOutputStream()
-	val in = new InputStreamReader(socket.getInputStream())
-	
-	val state = new MutableSensorsState()
-	
+	val in = socket.getInputStream()
+		
 	class NetworkCommunicator extends RoombaCommunicator {
 		
 		def receive = {
@@ -41,10 +39,26 @@ trait NetworkCommunicatorContainer extends CommunicatorContainer {
 			case Array(Sensors.opcode,s : Byte) => {
 				out write Array(Sensors.opcode, s)
 				s match {
-					case AllSensors.code => sender ! state.getByteArray(AllSensors)
-					case Detectors.code	 => sender ! state.getByteArray(Detectors)
-					case Controls.code	 => sender ! state.getByteArray(Controls)
-					case Health.code	 => sender ! state.getByteArray(Health)
+					case AllSensors.code => sender ! {
+						val s = new Array[Byte](26)
+						in.read(s)
+						s
+					}
+					case Detectors.code	 => sender ! {
+						val s = new Array[Byte](10)
+						println("[ NCC ] recieved: " + in.read(s) + " bytes (expected: " + s.length + " )")
+						s
+					}
+					case Controls.code	 => sender ! {
+						val s = new Array[Byte](6)
+						println("[ NCC ] recieved: " + in.read(s) + " bytes (expected: " + s.length + " )")
+						s
+					}
+					case Health.code	 => sender ! {
+						val s = new Array[Byte](10)
+						println("[ NCC ] recieved: " + in.read(s) + " bytes (expected: " + s.length + " )")
+						s
+					}
 					case _ => throw new IllegalArgumentException
 				}
 			}

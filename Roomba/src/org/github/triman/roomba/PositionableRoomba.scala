@@ -41,6 +41,12 @@ trait PositionableRoomba extends IRoomba{
 	private var lastEnsuredPosition = new Point(0,0)
 	
 	/**
+	 * we keep a copy in order to avoid having the "old" radius 
+	 * overridden before we get the sensors answer
+	 */
+	protected val radiusBeforeSensorCommand = new AtomicReference[Int](0)
+	
+	/**
 	 * Time between 2 refresh of the position (computation) [ms]
 	 */
 	var positionRefreshDuration : Int = 100
@@ -56,7 +62,9 @@ trait PositionableRoomba extends IRoomba{
 				if(sensorsState.angle.isDefined && sensorsState.distance.isDefined){
 					// compute position from radius, initial angle and distance
 					val p = PositionUtil.getPointAndAngleOnCircularPath(lastEnsuredPosition, lastEnsuredAngle,
-							sensorsState.distance.get ,radius.get)
+							sensorsState.distance.get ,radiusBeforeSensorCommand.get)
+							println("radius: " + radiusBeforeSensorCommand.get())
+							println("angle: " + sensorsState.angle.get)
 					lastEnsuredAngle += sensorsState.angle.get
 					lastEnsuredPosition = p._1
 					position.update(p._1)
@@ -73,6 +81,7 @@ trait PositionableRoomba extends IRoomba{
 	 */
 	abstract override def sensor(packet : SensorPacket) : Future[Any] = {
 		val f = super.sensor(packet)
+		radiusBeforeSensorCommand.set(radius.get)
 		val callback = (values : Try[Any]) => sensorCallback(packet, values)
 		f onComplete callback
 		return f

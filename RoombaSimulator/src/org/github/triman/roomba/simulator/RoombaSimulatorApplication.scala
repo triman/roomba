@@ -19,10 +19,6 @@ object RoombaSimulatorApplication {
 	val simulatedRoomba = new SimulatedRoomba()
 	val listener = new RoombaListener(simulatedRoomba, MainWindow.canvas)
 	
-	// roomba status
-	val roombaStatus = RoombaStatusDrawable
-	MainWindow.canvas.shapes += roombaStatus
-	
 	var room : Room = null
 	
 	def main(args : Array[String]){
@@ -33,6 +29,8 @@ object RoombaSimulatorApplication {
 		// build the GUI
 		MainWindow.visible = true
 		
+		TestListener.registerTest()
+		
 		// start the roomba
 		simulatedRoomba start
 		
@@ -41,6 +39,7 @@ object RoombaSimulatorApplication {
 	def loadRoom(filePath : String){
 		println("[ APP ] Loading room: " + filePath)
 			room = RoombaSimGuiElements.room(filePath)
+			simulatedRoomba.room.set(room)
 			MainWindow.room = room
 			MainWindow.title = "Roomba simulator - " +filePath
 	}

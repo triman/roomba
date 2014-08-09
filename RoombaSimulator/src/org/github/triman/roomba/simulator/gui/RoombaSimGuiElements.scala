@@ -8,6 +8,7 @@ import org.github.triman.roomba.simulator.gui.utils.SVGUtils
 import org.github.triman.graphics._
 import scala.xml.Elem
 import org.github.triman.roomba.simulator.environment.Room
+import java.awt.Point
 
 object RoombaSimGuiElements {
 	/**
@@ -23,7 +24,7 @@ object RoombaSimGuiElements {
 	/**
 	 * Retrieves a drawable roomba from the resources embedded within the project.
 	 */
-	def roomba() = {
+	def roomba(position : Point, angle : Double) = {
 		val rx = XML.withSAXParser(NonValidatingSAXParserFactory.getInstance)
 			.loadString(Source.fromURL(getClass().getResource("roomba.svg")).getLines().reduce(_ + _))
 
@@ -31,10 +32,14 @@ object RoombaSimGuiElements {
 		t.setToIdentity()
 
 		// set initial roomba position (size is 100%, so the svg image should be aprox 500x500px).
-		t.rotate(-Math.PI/2)
-		t.translate(-250, -250)
+		t.rotate(-3*Math.PI/2)
+		t.translate(-175, -175)
 		val roombaPosition = new AffineTransform
 		roombaPosition.setToIdentity
+		
+		roombaPosition.translate(position.getX(), position.getY())
+		roombaPosition.rotate(angle)
+		
 		new TransformableDrawable(new TransformableDrawable(SVGUtils.svg2Drawable(rx), t), roombaPosition)
 	}
 
