@@ -140,7 +140,8 @@ class SimulatedRoomba {
 			sensorsState.angle = Some(angleAtLastDriveCommand.get + d.toDouble/radius.get.toDouble)
 			
 			val walls : Shape = if(room.get == null) new Area() else room.get().wallsDrawable.shape
-
+			val floor : Shape = if(room.get == null) new Area() else room.get().floorDrawable.shape
+			
 			val transform = new AffineTransform()
 			// set to represent the roomba position
 			transform.translate(simulatedPosition().getX(), simulatedPosition().getY())
@@ -159,17 +160,63 @@ class SimulatedRoomba {
 				!walls.contains(p2.getX, p2.getY)
 			}))
 			
+			// if we are in safe mode -> we know that we had a collision and stop
 			if(state == ControlState.Safe && (leftBumper || rightBumper)){
 				setSpeedAndRadius(0, 0x8000)
 			}
 			sensorsState.leftBump = Some(leftBumper)
 			sensorsState.rightBump = Some(rightBumper)
-			// if we are in safe mode -> we know that we had a collision and stop
 			
+			// compute cliff detectors
+			val cliffLeft = !PhysicalRoomba.cliffLeft.forall(p => {
+				val p2 = transform.transform(p, null)
+				floor.contains(p2.getX, p2.getY)
+			})
+			val cliffRight = !PhysicalRoomba.cliffLeft.forall(p => {
+				val p2 = transform.transform(p, null)
+				floor.contains(p2.getX, p2.getY)
+			})
+			val cliffFrontLeft = {
+				val p2 = transform.transform(PhysicalRoomba.cliffFrontLeft, null)
+				!floor.contains(p2.getX, p2.getY)
+			}
+			val cliffFrontRight = {
+				val p2 = transform.transform(PhysicalRoomba.cliffFrontRight, null)
+				!floor.contains(p2.getX, p2.getY)
+			}
+			// if we are in safe mode -> we know that we had a cliff and stop
+			if(state == ControlState.Safe && (cliffLeft || cliffRight || cliffFrontLeft || cliffFrontRight)){
+				setSpeedAndRadius(0, 0x8000)
+			}
+			sensorsState.cliffFrontLeft = Some(cliffFrontLeft)
+			sensorsState.cliffFrontRight = Some(cliffFrontRight)
+			sensorsState.cliffLeft = Some(cliffLeft)
+			sensorsState.cliffRight = Some(cliffRight)
+			
+			// compute drops
+			val casterWheelDrop = {
+				val p2 = transform.transform(PhysicalRoomba.casterWheel, null)
+				!floor.contains(p2.getX, p2.getY)
+			}
+			val leftWheelDrop = {
+				val p2 = transform.transform(PhysicalRoomba.leftWheel, null)
+				!floor.contains(p2.getX, p2.getY)
+			}
+			val rightWheelDrop = {
+				val p2 = transform.transform(PhysicalRoomba.rightWheel, null)
+				!floor.contains(p2.getX, p2.getY)
+			}
+			// if we are in safe mode -> we know that a wheel dropped and stop
+			if(state == ControlState.Safe && (casterWheelDrop || leftWheelDrop || rightWheelDrop)){
+				setSpeedAndRadius(0, 0x8000)
+			}
+			sensorsState.casterWheelDrop = Some(casterWheelDrop)
+			sensorsState.leftWheelDrop = Some(leftWheelDrop)
+			sensorsState.rightWheelDrop = Some(rightWheelDrop)
 			
 			// compute wall detector
 			
-			// compute drops
+			
 			
 			// ToDo: dirt etc...
 			
