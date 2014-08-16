@@ -215,7 +215,11 @@ class SimulatedRoomba {
 			sensorsState.rightWheelDrop = Some(rightWheelDrop)
 			
 			// compute wall detector
-			
+			val wallSensors = {
+				val p2 = transform.transform(PhysicalRoomba.wall, null)
+				walls.contains(p2.getX, p2.getY)
+			}
+			sensorsState.wall = Some(wallSensors)
 			
 			
 			// ToDo: dirt etc...

@@ -16,8 +16,8 @@ import org.github.triman.graphics.ColoredDrawableShape
 object RoombaStatusDrawable extends Drawable{
 	// initialize 
 	val regions = List('Background, 'CasterWheel, 'WheelLeft, 'WheelRight,
-			'CliffLeft, 'CliffFrontLeft, 'CliffFrontRight, 'CliffRight,
-			'MainBrush, 'Vacuum, 'SideBrush, 'WallSensor, 'BumperLeft, 'BumperRight,
+			'CliffLeft, 'CliffFrontLeft, 'CliffFrontRight, 'CliffRight, 'VirtualWall,
+			'MainBrush, 'Vacuum, 'SideBrush, 'Wall, 'BumperLeft, 'BumperRight,
 			'Roomba)
 			
 			
@@ -37,7 +37,7 @@ object RoombaStatusDrawable extends Drawable{
 		roombaPosition.scale(0.4, 0.4)
 	val drawable = new AnchoredDrawable(Top, Right, new TransformableDrawable(aggregartedDrawable, roombaPosition))
 	regions.foreach(r => this.setOn(r))
-	List('MainBrush, 'Vacuum, 'SideBrush).foreach(r => this.setOff(r))
+	List('MainBrush, 'Vacuum, 'SideBrush, 'Wall).foreach(r => this.setOff(r))
 	
 	override def draw(g : Graphics2D, t : AffineTransform){
 		val t2 = new AffineTransform()

@@ -23,7 +23,7 @@ object PositionUtil {
 			(p, t0)
 		} else { // driving along an arc
 			require(r != 0, "The radius cannot be 0 with a non 0 speed")
-			val dt = (d.toDouble*min(1.0, 2*r.toDouble/RoombaProperties.wheelDistance)) / r.toDouble
+			val dt = (d.toDouble*min(1.0, abs(2*r.toDouble/RoombaProperties.wheelDistance))) / r.toDouble
 			val p = new Point(
 				(p0.x - r*sin(t0) + r*sin(t0 + dt)).round.toInt,
 				(p0.y + r*cos(t0) - r*cos(t0 + dt)).round.toInt)

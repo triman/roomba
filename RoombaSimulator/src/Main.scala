@@ -14,17 +14,8 @@ object Main {
 		R.baud(300)
 		
 		R.control
-		R.drive(250, 100)
-		Thread.sleep(5000)
-		R.drive(0)
-		println("R: " + R.position())
-		Thread.sleep(2000)
-		println("R: " + R.position())
-		R.drive(-500,-250)
-		Thread.sleep(5000)
-		R.drive(0)
-		println("R: " + R.position())
-		R.shutdown
+		R.drive(100, -60)
+		
 	}
 
 }

@@ -64,6 +64,7 @@ class RoombaListener(val simulatedRoomba : SimulatedRoomba, val canvas : Canvas)
 		}else{
 			roombaStatus.setOn('CliffRight)
 		}
+		
 		// drops
 		if(s.casterWheeldrop.isDefined && s.casterWheeldrop.get){
 			roombaStatus.setOff('CasterWheel)
@@ -71,14 +72,20 @@ class RoombaListener(val simulatedRoomba : SimulatedRoomba, val canvas : Canvas)
 			roombaStatus.setOn('CasterWheel)
 		}
 		if(s.leftWheelDrop.isDefined && s.leftWheelDrop.get){
-			roombaStatus.setOff('LeftWheel)
+			roombaStatus.setOff('WheelLeft)
 		}else{
-			roombaStatus.setOn('LeftWheel)
+			roombaStatus.setOn('WheelLeft)
 		}
 		if(s.rightWheeldrop.isDefined && s.rightWheeldrop.get){
-			roombaStatus.setOff('RightWheel)
+			roombaStatus.setOff('WheelRight)
 		}else{
-			roombaStatus.setOn('RightWheel)
+			roombaStatus.setOn('WheelRight)
+		}
+		
+		if(s.wall.isDefined && s.wall.get){
+			roombaStatus.setOn('Wall)
+		}else{
+			roombaStatus.setOff('Wall)
 		}
 		
 		canvas.repaint()
