@@ -14,7 +14,7 @@ object Main {
 		R.baud(300)
 		
 		R.control
-		R.drive(100, -60)
+		R.drive(100)
 		
 	}
 

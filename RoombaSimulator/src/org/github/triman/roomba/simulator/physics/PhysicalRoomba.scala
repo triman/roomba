@@ -21,5 +21,5 @@ object PhysicalRoomba {
 	val cliffRight = List(new Point2D.Double(55, 150), new Point2D.Double(55, -150))
 	val cliffLeft = List(new Point2D.Double(-55, 150), new Point2D.Double(-55, -150))
 	
-	// ToDo: add virtual wall
+	val virtualWall = new Point2D.Double(155,0)
 }

@@ -88,6 +88,12 @@ class RoombaListener(val simulatedRoomba : SimulatedRoomba, val canvas : Canvas)
 			roombaStatus.setOff('Wall)
 		}
 		
+		if(s.virtualWall.isDefined && s.virtualWall.get){
+			roombaStatus.setOff('VirtualWall)
+		}else{
+			roombaStatus.setOn('VirtualWall)
+		}
+		
 		canvas.repaint()
 	}
 	

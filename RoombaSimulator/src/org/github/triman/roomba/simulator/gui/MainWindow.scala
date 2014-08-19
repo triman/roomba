@@ -29,6 +29,11 @@ import scala.swing.MenuItem
 import scala.swing.Action
 import scala.swing.FileChooser
 import org.github.triman.roomba.simulator.RoombaSimulatorApplication
+import org.github.triman.window.Toolbar
+import scala.swing.Button
+import javax.swing.ImageIcon
+import javax.swing.BorderFactory
+import org.github.triman.window.ImageButton
 /**
  * http://www.jasperpotts.com/blog/2007/07/svg-shape-2-java2d-code/
  */
@@ -90,5 +95,19 @@ object MainWindow extends Frame {
          })
        }
     }
-
+  // toolbar
+	val toolbar = new Toolbar
+	// add buttons to the toolbar
+	val startButton = new ImageButton(getClass().getResource("play.png"))
+	val pauseButton = new ImageButton(getClass().getResource("pause.png"))
+	val resetButton = new ImageButton(getClass().getResource("reset.png"))
+	toolbar.add(startButton)
+	toolbar.add(pauseButton)
+	toolbar.peer.addSeparator
+	toolbar.add(resetButton)
+	
+	ToolbarListener.init
+	
+	container.layout(toolbar) = BorderPanel.Position.North
+	
 }

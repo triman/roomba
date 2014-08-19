@@ -42,7 +42,8 @@ class SimulatedRoomba {
 	 * This position is used to compute the sensors values (bumps, dirt, ...).
 	 */
 	val simulatedPosition = new Notifier[Point, Symbol](new Point(0, 0)) { def id = 'RoombaSimulatedPositionChange }
-	val simulatedAngle = new Notifier[Double, Symbol](-Math.PI) { def id = 'RoombaSimulatedAngleChange }	// initial angle is π since we usually start facing a wall (-> room will probably be mapped in positive directions then).
+	val initialAngle = Math.PI
+	val simulatedAngle = new Notifier[Double, Symbol](initialAngle) { def id = 'RoombaSimulatedAngleChange }	
 
 	val speed = new AtomicReference[Int](0)
 	val radius = new AtomicReference[Int](0)
@@ -64,7 +65,7 @@ class SimulatedRoomba {
 	 * Default : 10 ms
 	 */
 	val simulatedPositionRefreshInterval = 10;
-
+	
 	val room = new AtomicReference[Room](null)
 	private val lastFrontCollisionTimestamp = new AtomicReference[Long](0)
 	private val lastBackCollisionTimestamp = new AtomicReference[Long](0)
@@ -76,6 +77,7 @@ class SimulatedRoomba {
 	 */
 	private object simulationWorker {
 		private var t: Thread = null;
+		val hasToRun = new AtomicBoolean(true)
 		/**
 		 * Starts the worker
 		 */
@@ -116,7 +118,9 @@ class SimulatedRoomba {
 						}
 					}
 				}
-				t.start
+				if(hasToRun.get){
+					t.start
+				}
 			}
 		}
 		/**
@@ -129,10 +133,13 @@ class SimulatedRoomba {
 				}
 			}
 		}
-
+		
+		def reset() : Unit = {
+			state = ControlState.Off
+		}
+		
 		/**
 		 * Compute the sensors state (bumpers etc...) from the surface.
-		 * ToDo: if the roomba is in safe mode, it should stop if a bump occured.
 		 */
 		private def computeAndApplySensors() {
 			val d = (((Platform.currentTime - lastDriveCommandTimestamp.get) * speed.get())/1000).toInt
@@ -141,6 +148,8 @@ class SimulatedRoomba {
 			
 			val walls : Shape = if(room.get == null) new Area() else room.get().wallsDrawable.shape
 			val floor : Shape = if(room.get == null) new Area() else room.get().floorDrawable.shape
+			val objects : Shape = if(room.get == null) new Area() else room.get().objectsDrawable.shape
+			val virtualWalls : Shape = if(room.get == null) new Area() else room.get().virtualWallsDrawable.shape
 			
 			val transform = new AffineTransform()
 			// set to represent the roomba position
@@ -149,15 +158,15 @@ class SimulatedRoomba {
 			// compute bumpers, may bump only when driving forward
 			val rightBumper = speed.get > 0 && !PhysicalRoomba.rightBumper.forall(p => {
 				val p2 = transform.transform(p, null)
-				!walls.contains(p2.getX, p2.getY)
+				!(walls.contains(p2.getX, p2.getY) || objects.contains(p2.getX, p2.getY)) 				
 				})
 			val leftBumper  = speed.get > 0 && !PhysicalRoomba.leftBumper.forall(p => {
 				val p2 = transform.transform(p, null)
-				!walls.contains(p2.getX, p2.getY)
+				!(walls.contains(p2.getX, p2.getY) || objects.contains(p2.getX, p2.getY))
 			})
 			backBump.set(speed.get < 0 && !PhysicalRoomba.backBumper.forall(p => {
 				val p2 = transform.transform(p, null)
-				!walls.contains(p2.getX, p2.getY)
+				!(walls.contains(p2.getX, p2.getY) || objects.contains(p2.getX, p2.getY))
 			}))
 			
 			// if we are in safe mode -> we know that we had a collision and stop
@@ -217,10 +226,16 @@ class SimulatedRoomba {
 			// compute wall detector
 			val wallSensors = {
 				val p2 = transform.transform(PhysicalRoomba.wall, null)
-				walls.contains(p2.getX, p2.getY)
+				walls.contains(p2.getX, p2.getY) || objects.contains(p2.getX, p2.getY)
 			}
 			sensorsState.wall = Some(wallSensors)
 			
+			// virtual wall
+			val virtualWall = {
+				val p2 = transform.transform(PhysicalRoomba.virtualWall, null)
+				virtualWalls.contains(p2.getX, p2.getY)
+			}
+			sensorsState.virtualWall = Some(virtualWall)
 			
 			// ToDo: dirt etc...
 			
@@ -404,7 +419,29 @@ class SimulatedRoomba {
 	def start(): Unit = {
 		roombaSocketServer.start
 	}
-
+	
+	def pause() : Unit = {
+		simulationWorker.hasToRun.set(false)
+		simulationWorker.stop
+	}
+	def unPause() : Unit = {
+		simulationWorker.hasToRun.set(true)
+	}
+	def reset() : Unit = {
+		pause
+		simulatedPosition.update(new Point(0,0))
+		simulatedAngle.update(initialAngle)
+		speed.set(0)
+		radius.set(0)
+		lastDriveCommandTimestamp.set(0)
+		distanceAtLastDriveCommand.set(0)
+		angleAtLastDriveCommand.set(0)
+		lastFrontCollisionTimestamp.set(0)
+		lastBackCollisionTimestamp.set(0)
+		simulationWorker.reset
+		unPause
+	}
+	
 	/**
 	 * Shutdown the simulated roomba
 	 */
