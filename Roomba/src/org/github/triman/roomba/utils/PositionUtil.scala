@@ -21,8 +21,11 @@ object PositionUtil {
 				(p0.x + d*cos(t0)).round.toInt,
 				(p0.y + d*sin(t0)).round.toInt)
 			(p, t0)
-		} else { // driving along an arc
-			require(r != 0, "The radius cannot be 0 with a non 0 speed")
+		} 
+		else if(r == 0){
+			(p0, t0)	// hack that should never happen
+		}	else { // driving along an arc
+			
 			val dt = (d.toDouble*min(1.0, abs(2*r.toDouble/RoombaProperties.wheelDistance))) / r.toDouble
 			val p = new Point(
 				(p0.x - r*sin(t0) + r*sin(t0 + dt)).round.toInt,

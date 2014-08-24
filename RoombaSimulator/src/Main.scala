@@ -3,7 +3,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import org.github.triman.roomba._
 import org.github.triman.roomba.simulator.SimulatedRoomba
-import org.github.triman.roomba.simulator.communication.NetworkCommunicatorContainer
+import org.github.triman.roomba.communication.NetworkCommunicatorContainer
 import scala.compat.Platform
 object Main {
 

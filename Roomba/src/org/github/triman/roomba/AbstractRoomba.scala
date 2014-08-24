@@ -205,7 +205,7 @@ abstract class AbstractRoomba extends IRoomba{
 	 */
 	def sensor(packet : SensorPacket) = {
 		assume(isStarted, "The interface should be started first")
-		// ToDo: Implement this
+		
 		implicit val timeout = Timeout(5 seconds)
 		communicator ? Array(Sensors.opcode, packet.code)
 	}
@@ -225,9 +225,4 @@ abstract class AbstractRoomba extends IRoomba{
 		
 		communicator ! ForceSeekingDock.opcode
 	}
-	
-	/**
-	 * Terminates the system.
-	 */
-	def shutdown() : Unit
 }

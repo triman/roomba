@@ -1,10 +1,8 @@
-package org.github.triman.roomba.simulator.communication
+package org.github.triman.roomba.communication
 
 import akka.actor._
 import org.github.triman.roomba.SensorsState
-import org.github.triman.roomba.communication._
 import org.github.triman.roomba.Sensors
-import org.github.triman.roomba.simulator._
 import java.nio.ByteBuffer
 import java.io.PipedOutputStream
 import java.io.PipedInputStream
@@ -16,9 +14,11 @@ import java.io.PrintWriter
 import java.net.Socket
 import java.io.BufferedReader
 import java.io.InputStreamReader
+import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext.Implicits.global
 
 trait NetworkCommunicatorContainer extends CommunicatorContainer {
-	val system = ActorSystem("ActorSystem")
+	var system = ActorSystem()
 	override val communicator = system.actorOf(NetworkCommunicator.props)
 
 	object NetworkCommunicator {
@@ -33,7 +33,6 @@ trait NetworkCommunicatorContainer extends CommunicatorContainer {
 	val in = socket.getInputStream()
 		
 	class NetworkCommunicator extends RoombaCommunicator {
-		
 		def receive = {
 			case b : Byte => out write Array(b)
 			case Array(Sensors.opcode,s : Byte) => {
@@ -64,11 +63,18 @@ trait NetworkCommunicatorContainer extends CommunicatorContainer {
 			}
 			case a : Array[Byte] => out write a
 		}
+		
+		override def postStop() = {
+			super.postStop()
+			context.system.shutdown()
+		}
+		
 	}
 	
 	override def shutdown()  : Unit = {
 		communicator ! PoisonPill
-		system shutdown
+		system.awaitTermination()
+  	
 	}
 
 }

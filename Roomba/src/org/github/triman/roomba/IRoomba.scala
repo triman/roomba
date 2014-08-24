@@ -2,7 +2,7 @@ package org.github.triman.roomba
 
 import scala.concurrent.Future
 
-trait IRoomba {
+trait IRoomba extends Shutdownable {
 	/**
 	 * Starts the SCI interface. This must be called before any other command
 	 */
@@ -142,8 +142,4 @@ trait IRoomba {
 	 */
 	def forceSeekingDock() : Unit
 	
-	/**
-	 * Terminates the system.
-	 */
-	def shutdown() : Unit
 }

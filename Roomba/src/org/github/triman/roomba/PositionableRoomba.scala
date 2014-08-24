@@ -155,4 +155,9 @@ trait PositionableRoomba extends IRoomba{
 		}
 	}
 	
+	override def shutdown()  : Unit = {
+		super.shutdown()
+		positionComputationWorker stop
+  	
+	}
 }
