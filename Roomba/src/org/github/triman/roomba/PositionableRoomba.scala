@@ -25,7 +25,7 @@ trait PositionableRoomba extends IRoomba{
 	 * Roomba's computed angle
 	 */
 	val angle = new Notifier[Double, Symbol](0){def id = 'RoombaAngleChange}
-	private var _positionComputationType = ComputedPosition
+	private var _positionComputationType: PositionComputationType = ComputedPosition
 	def positionComputationType = _positionComputationType
 	
 	/**
@@ -41,12 +41,6 @@ trait PositionableRoomba extends IRoomba{
 	private var lastEnsuredPosition = new Point(0,0)
 	
 	/**
-	 * we keep a copy in order to avoid having the "old" radius 
-	 * overridden before we get the sensors answer
-	 */
-	protected val radiusBeforeSensorCommand = new AtomicReference[Int](0)
-	
-	/**
 	 * Time between 2 refresh of the position (computation) [ms]
 	 */
 	var positionRefreshDuration : Int = 100
@@ -55,18 +49,21 @@ trait PositionableRoomba extends IRoomba{
 	import ExecutionContext.Implicits.global
 	
 	// position computation callback
-	private def sensorCallback(packet : SensorPacket, values : Try[Any]) : Unit = {
+	private def sensorCallback(speed : Int, radius: Int, packet : SensorPacket, values : Try[Any]) : Unit = {
 		values match {
 			case Success(v) => {
 				val sensorsState = SensorsState.getSensorState(packet, v.asInstanceOf[Array[Byte]])
 				if(sensorsState.angle.isDefined && sensorsState.distance.isDefined){
 					// compute position from radius, initial angle and distance
 					val p = PositionUtil.getPointAndAngleOnCircularPath(lastEnsuredPosition, lastEnsuredAngle,
-							sensorsState.distance.get ,radiusBeforeSensorCommand.get)
-							println("radius: " + radiusBeforeSensorCommand.get())
-							println("angle: " + sensorsState.angle.get)
+							Math.signum(speed).toInt * sensorsState.distance.get ,radius)
+							println("s: last angle: " + lastEnsuredAngle)
+							println("s: distance: " + sensorsState.distance.get)
+							println("s: radius: " + radius)
+							println("s: angle: " + sensorsState.angle.get)
 					lastEnsuredAngle += sensorsState.angle.get
 					lastEnsuredPosition = p._1
+					_positionComputationType = ComputedPosition
 					position.update(p._1)
 					angle.update(lastEnsuredAngle)
 				}
@@ -80,9 +77,10 @@ trait PositionableRoomba extends IRoomba{
 	 * @param packet The sensors packet to get.
 	 */
 	abstract override def sensor(packet : SensorPacket) : Future[Any] = {
+		val radius = this.radius.get
+		val speed = this.speed.get
 		val f = super.sensor(packet)
-		radiusBeforeSensorCommand.set(radius.get)
-		val callback = (values : Try[Any]) => sensorCallback(packet, values)
+		val callback = (values : Try[Any]) => sensorCallback(speed, radius, packet, values)
 		f onComplete callback
 		return f
 	}
@@ -100,7 +98,7 @@ trait PositionableRoomba extends IRoomba{
 		// set the current speed and radius
 		this.speed.set(speed)
 		this.radius.set(radius)
-		if(speed > 0){
+		if(speed != 0){
 			// start computation
 			positionComputationWorker.start
 		}else{
@@ -132,7 +130,7 @@ trait PositionableRoomba extends IRoomba{
 							val d = (speed.get() * t1).toInt / 1000
 							
 							val p1 = PositionUtil.getPointAndAngleOnCircularPath(p0, a0, d, radius.get())
-							_positionComputationType = ComputedPosition
+							_positionComputationType = InterpolatedPosition
 							position.update(p1._1)
 							angle.update(p1._2)
 							

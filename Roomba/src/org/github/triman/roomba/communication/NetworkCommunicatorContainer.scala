@@ -45,17 +45,20 @@ trait NetworkCommunicatorContainer extends CommunicatorContainer {
 					}
 					case Detectors.code	 => sender ! {
 						val s = new Array[Byte](10)
-						println("[ NCC ] recieved: " + in.read(s) + " bytes (expected: " + s.length + " )")
+						in.read(s)
+						//println("[ NCC ] recieved: " + in.read(s) + " bytes (expected: " + s.length + " )")
 						s
 					}
 					case Controls.code	 => sender ! {
 						val s = new Array[Byte](6)
-						println("[ NCC ] recieved: " + in.read(s) + " bytes (expected: " + s.length + " )")
+						in.read(s)
+						//println("[ NCC ] recieved: " + in.read(s) + " bytes (expected: " + s.length + " )")
 						s
 					}
 					case Health.code	 => sender ! {
 						val s = new Array[Byte](10)
-						println("[ NCC ] recieved: " + in.read(s) + " bytes (expected: " + s.length + " )")
+						in.read(s)
+						//println("[ NCC ] recieved: " + in.read(s) + " bytes (expected: " + s.length + " )")
 						s
 					}
 					case _ => throw new IllegalArgumentException

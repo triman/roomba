@@ -37,8 +37,8 @@ object RoombaSimGuiElements {
 		val roombaPosition = new AffineTransform
 		roombaPosition.setToIdentity
 		
-		roombaPosition.translate(position.getX(), position.getY())
-		roombaPosition.rotate(angle)
+		roombaPosition.translate(position.getX(), -position.getY())
+		roombaPosition.rotate(-angle)
 		
 		new TransformableDrawable(new TransformableDrawable(SVGUtils.svg2Drawable(rx), t), roombaPosition)
 	}

@@ -26,8 +26,8 @@ class RoombaListener(val simulatedRoomba : SimulatedRoomba, val canvas : Canvas)
 		val angle = simulatedRoomba.simulatedAngle()
 		
 		roombaShape.transform.setToIdentity()
-		roombaShape.transform.translate(position.getX(), position.getY())
-		roombaShape.transform.rotate(angle)
+		roombaShape.transform.translate(position.getX(), -position.getY())
+		roombaShape.transform.rotate(-angle)
 		canvas.repaint()
 	}
 	

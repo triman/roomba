@@ -12,37 +12,49 @@ trait DriveExtension extends IRoomba {
 	val refreshRate: Int
 
 	private def executeWithStateCheck(
+		maxDuration : Option[Long],
 		c: (SensorsState) => Boolean,
 		interruptionHandler: (Boolean) => Unit): Future[Any] = {
 		Future {
 			synchronized {
+				val startTime = Platform.currentTime
 				var interrupted = false;
 				executionThread = new Thread(new Runnable {
 					def run() {
 						try {
 							var hasToRun = true;
 							while (hasToRun && !executionThread.isInterrupted()) {
-								Thread.sleep(refreshRate)
 								val r = DriveExtension.this.sensor(Detectors)
-
 								val callback = (values: Try[Any]) => {
 									values match {
 										case Success(v) => {
 											val sensorsState = SensorsState.getSensorState(Detectors, v.asInstanceOf[Array[Byte]])
+											maxDuration match{
+												case None => {}
+												case Some(m) => hasToRun = m > (Platform.currentTime - startTime)
+											}
 											if(!c(sensorsState)){
 												hasToRun = false;
-												stop
 											}
 										}
 										case _ => {}
 									}
 								}
 								r onComplete callback
+								Thread.sleep(maxDuration match{
+									case None => refreshRate
+									case Some(m) => Math.max(0,
+											Math.min(
+												m - (Platform.currentTime - startTime)
+												, refreshRate		
+											))
+								})
 							}
 						}catch {
 							case e: InterruptedException => interrupted = true
 							case _: Throwable => {} // swallow exceptions
 						}
+						stop
 					}
 				})
 				executionThread.start // run the thread
@@ -59,6 +71,7 @@ trait DriveExtension extends IRoomba {
 	def tryDrive(speed: Short): Future[Any] = {
 		drive(speed)
 		executeWithStateCheck(
+				None,
 			_ => true,
 			_ => {})
 	}
@@ -70,14 +83,39 @@ trait DriveExtension extends IRoomba {
 	 */
 	def tryDrive(speed: Short, distance: Int): Future[Any] = {
 		drive(speed)
-		val startTime = Platform.currentTime
-			def check(s: SensorsState): Boolean = {
-				Platform.currentTime - startTime < (1000 * distance / speed)
-			}
 		executeWithStateCheck(
-			check(_),
+			Some(Math.abs((1000 * distance) / speed)),
+			_ => true,
 			t => if (t) { throw new Exception("interrupted") })
 	}
+	
+	/**
+	 * Turns as long as it can
+	 * @param speed Speed [mm/s]
+	 * @param radius Radius [mm]
+	 */
+	def tryTurn(speed : Short, radius: Short) : Future[Any] = {
+		drive(speed, radius)
+		executeWithStateCheck(None, _ => true, _ => {})
+	}
+	
+	/**
+	 * Tries to turn with a certain angle
+	 * @param angle Angle we should try tu turn
+	 * @param speed Speed [mm/s]
+	 * @param radius Radius [mm]
+	 */
+	def tryTurn(angle : Double, speed : Short, radius : Short) : Future[Any] = {
+		drive(speed, radius)
+		executeWithStateCheck(
+				Some(Math.abs((1000 * radius.signum * Math.max(radius.abs, 129) * angle).toInt / speed)),
+			_ => true,
+			t => {
+				if (t) {
+				throw new Exception("interrupted") }}
+		)
+	}
+	
 
 	/**
 	 * Get the sensors data.

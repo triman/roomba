@@ -30,7 +30,9 @@ object PositionUtil {
 			val p = new Point(
 				(p0.x - r*sin(t0) + r*sin(t0 + dt)).round.toInt,
 				(p0.y + r*cos(t0) - r*cos(t0 + dt)).round.toInt)
-			(p, t0 + dt)
+			var t1 = t0 + dt
+			t1 -= 2*PI*(floor(t1/2*PI))
+			(p, t1)
 		}
 		
 	}

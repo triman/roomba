@@ -142,9 +142,21 @@ class SimulatedRoomba {
 		 * Compute the sensors state (bumpers etc...) from the surface.
 		 */
 		private def computeAndApplySensors() {
+			val screenPosition = new Point(simulatedPosition().x, -simulatedPosition().y)
 			val d = (((Platform.currentTime - lastDriveCommandTimestamp.get) * speed.get())/1000).toInt
-			sensorsState.distance = Some((distanceAtLastDriveCommand.get + d))
-			sensorsState.angle = Some(angleAtLastDriveCommand.get + d.toDouble/radius.get.toDouble)
+			sensorsState.distance = Some((distanceAtLastDriveCommand.get + Math.abs(d)))
+			var a = angleAtLastDriveCommand.get + d.toDouble/radius.get.toDouble
+			
+			if(a > 2*Math.PI){
+				while(a > 2*Math.PI){
+					a -= 2*Math.PI
+				}
+			}else if(a < -2*Math.PI){
+				while(a < -2*Math.PI){
+					a += 2*Math.PI
+				}
+			}
+			sensorsState.angle = Some(a)
 			
 			val walls : Shape = if(room.get == null) new Area() else room.get().wallsDrawable.shape
 			val floor : Shape = if(room.get == null) new Area() else room.get().floorDrawable.shape
@@ -153,8 +165,8 @@ class SimulatedRoomba {
 			
 			val transform = new AffineTransform()
 			// set to represent the roomba position
-			transform.translate(simulatedPosition().getX(), simulatedPosition().getY())
-			transform.rotate(simulatedAngle())
+			transform.translate(screenPosition.getX(), screenPosition.getY())
+			transform.rotate(-simulatedAngle())
 			// compute bumpers, may bump only when driving forward
 			val rightBumper = speed.get > 0 && !PhysicalRoomba.rightBumper.forall(p => {
 				val p2 = transform.transform(p, null)
@@ -373,18 +385,25 @@ class SimulatedRoomba {
 	 */
 	def onSensors(code: Byte): Array[Byte] = {
 		println("[ " + Console.GREEN + "SIM" + Console.RESET +" ] Sensors")
+		
+		var result : Array[Byte] = null
+		code match {
+			case AllSensors.code => result = sensorsState.getByteArray(AllSensors)
+			case Detectors.code => result = sensorsState.getByteArray(Detectors)
+			case Controls.code => result = sensorsState.getByteArray(Controls)
+			case Health.code => result = sensorsState.getByteArray(Health)
+		}
+		
 		// set the last time we cot data = now, and the offset distance to 0
 		if (code == Controls.code || code == AllSensors.code) {
 			lastDriveCommandTimestamp set Platform.currentTime
 			distanceAtLastDriveCommand set 0
 			angleAtLastDriveCommand set 0
+			println("distance: " + sensorsState.distance.get)
+			sensorsState.distance = Some(0)
+			sensorsState.angle = Some(0)
 		}
-		code match {
-			case AllSensors.code => sensorsState.getByteArray(AllSensors)
-			case Detectors.code => sensorsState.getByteArray(Detectors)
-			case Controls.code => sensorsState.getByteArray(Controls)
-			case Health.code => sensorsState.getByteArray(Health)
-		}
+		result
 	}
 	/**
 	 * Callback for the ForceSeekingDock command
@@ -431,6 +450,8 @@ class SimulatedRoomba {
 		pause
 		simulatedPosition.update(new Point(0,0))
 		simulatedAngle.update(initialAngle)
+		sensorsState.distance = Some(0)
+		sensorsState.angle = Some(0)
 		speed.set(0)
 		radius.set(0)
 		lastDriveCommandTimestamp.set(0)
